@@ -1,8 +1,11 @@
 package com.d4enst.laba_novigation
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,26 +30,63 @@ import androidx.navigation.compose.rememberNavController
 import com.d4enst.laba_novigation.navigation.NavContent
 import com.d4enst.laba_novigation.navigation.Page
 import com.d4enst.laba_novigation.ui.theme.Laba_novigationTheme
+import com.yandex.mapkit.MapKitFactory
 
 class MainActivity : ComponentActivity() {
+    private lateinit var requester: ActivityResultLauncher<Array<String>>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // яндекс карта
+        MapKitFactory.setApiKey("")
+        MapKitFactory.initialize(this)
+
+        requester = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ){
+            // Закрыть приложение, если пользователь не согласился
+            if (!it.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)){
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
+        }
+
+        requester.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            )
+        )
 
         setContent {
             val navController: NavHostController = rememberNavController()
             val position by navController.currentBackStackEntryAsState()
             Laba_novigationTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    MainView(position, navController)
+                    MainView(
+                        position,
+                        navController,
+                    )
                 }
             }
         }
+    }
+    override fun onStart() {
+        super.onStart()
+        MapKitFactory.getInstance().onStart()
+    }
+
+    override fun onStop() {
+        MapKitFactory.getInstance().onStop()
+        super.onStop()
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainView(position: NavBackStackEntry?, navController: NavHostController) {
+fun MainView(
+    position: NavBackStackEntry?,
+    navController: NavHostController,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -60,7 +100,7 @@ fun MainView(position: NavBackStackEntry?, navController: NavHostController) {
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 navigationIcon = {
-                    if (position?.destination?.route != Page.MAIN_PAGE.route)
+                    if (position?.destination?.route != Page.MAIN_PAGE)
                         IconButton(onClick = {navController.popBackStack()}) {
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_arrow_back_24),
@@ -84,7 +124,9 @@ fun MainView(position: NavBackStackEntry?, navController: NavHostController) {
 fun MainViewPreview() {
     val navController = rememberNavController()
     val position by navController.currentBackStackEntryAsState()
-    Laba_novigationTheme {
-        MainView(position, navController)
-    }
+
+    MainView(
+        position = position,
+        navController = navController,
+    )
 }
