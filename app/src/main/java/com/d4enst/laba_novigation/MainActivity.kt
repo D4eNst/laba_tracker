@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // яндекс карта
-        MapKitFactory.setApiKey("")
+        MapKitFactory.setApiKey("d836dd6c-05f6-481e-b36e-713aed5e4c7b")
         MapKitFactory.initialize(this)
 
         requester = registerForActivityResult(
