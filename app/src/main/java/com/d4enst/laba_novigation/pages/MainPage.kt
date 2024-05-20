@@ -57,14 +57,14 @@ fun YaMap(
                 mapView.mapWindow.map.apply {
                     mapObjects.clear()
                     locations.let {
-                        //val c = Circle(Point(it.latitude, it.longitude), 10f)
-                        //val c10 = Circle(Point(it.latitude, it.longitude), 100f)
+
                         if (locations.isNotEmpty()) {
+                            val last = locations.last()
+                            val c = Circle(Point(last.latitude, last.longitude), 10f)
+                            val c10 = Circle(Point(last.latitude, last.longitude), 100f)
                             val pl = Polyline(locations.map { Point(it.latitude, it.longitude) })
-                            cameraPosition(Geometry.fromPolyline(pl)).let {
-                                move(it)
-                            }
-                            //mapObjects.addCircle(c)
+                            move(cameraPosition(Geometry.fromCircle(c10)))
+                            mapObjects.addCircle(c)
                             mapObjects.addPolyline(pl)
                         }
                     }
